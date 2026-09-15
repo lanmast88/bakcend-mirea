@@ -1,0 +1,15 @@
+[project]
+name = "home-inventory"
+version = "0.2.0"
+description = "Консольное приложение для учёта товаров в доме"
+requires-python = ">=3.10"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "flake8>=7.0",
+    "pytest>=8.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

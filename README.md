@@ -51,7 +51,16 @@
 - pytest;
 - flake8.
 
-Установка зависимостей:
+Зависимости описаны в `pyproject.toml` (группа `dev`) и продублированы
+в `requirements.txt`.
+
+Установка окружения через [uv](https://docs.astral.sh/uv/):
+
+```
+uv sync
+```
+
+Установка через pip:
 
 ```
 pip install -r requirements.txt
@@ -60,20 +69,23 @@ pip install -r requirements.txt
 ## Запуск программы
 
 ```
-python main.py
+uv run main.py
 ```
 
 ## Запуск тестов
 
 ```
-pytest
+uv run pytest
 ```
 
 ## Проверка качества кода
 
 ```
-flake8
+uv run flake8
 ```
+
+Если окружение активировано (`source .venv/bin/activate`), те же команды
+запускаются без префикса `uv run`: `python main.py`, `pytest`, `flake8`.
 
 ## План развития
 
