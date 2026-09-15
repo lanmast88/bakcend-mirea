@@ -1,0 +1,29 @@
+[
+  {
+    "id": 1,
+    "name": "Молоко",
+    "category": "Продукты",
+    "unit": "л",
+    "quantity": 2,
+    "min_threshold": 2,
+    "date_added": "2026-09-08"
+  },
+  {
+    "id": 2,
+    "name": "Стиральный порошок",
+    "category": "Бытовая химия",
+    "unit": "кг",
+    "quantity": 4,
+    "min_threshold": 1,
+    "date_added": "2026-09-10"
+  },
+  {
+    "id": 3,
+    "name": "Парацетамол",
+    "category": "Лекарства",
+    "unit": "уп",
+    "quantity": 0,
+    "min_threshold": 1,
+    "date_added": "2026-09-12"
+  }
+]

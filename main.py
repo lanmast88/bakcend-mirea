@@ -1,47 +1,185 @@
-from datetime import date
+"""Точка запуска приложения учёта товаров в доме."""
 
-username = "ivan_petrov"
-password = "qwerty123"
-entered_password = "qwerty123"
-is_logged_in = (entered_password == password)
+from collections.abc import Callable, Iterable
 
+from auth import authenticate, get_login_status
+from items import (
+    add_item,
+    filter_items_by_category,
+    find_items,
+    get_add_confirmation,
+    get_item,
+    get_items_table,
+    sort_items_by_quantity,
+)
+from stock import (
+    consume_item,
+    get_low_stock_items,
+    get_stock_status,
+    restock_item,
+)
+from storage import load_items, load_users, save_items
+from utils import input_date, input_int, input_text
 
-def get_login_status(is_logged_in):
-    if is_logged_in:
-        return f"Пользователь '{username}' успешно авторизован"
-    return "Неверный пароль, авторизация не выполнена"
-
-
-item_name = "Молоко"
-category = "Продукты"
-unit = "л"
-quantity_input = "5"            
-quantity = int(quantity_input)  
-min_threshold = 2
-date_added = date(2026, 9, 8)
-
-
-def get_add_confirmation(item_name, category, quantity):
-    if quantity > 0:
-        return f"Товар '{item_name}' добавлен в категорию '{category}' в количестве {quantity} {unit}"
-    return f"Товар '{item_name}' не добавлен: количество должно быть больше нуля"
+LOGIN_ATTEMPTS = 3
 
 
-used_amount = 3
-quantity = quantity - used_amount
+def show_items(items: dict[int, dict]) -> bool:
+    """Вывести список товаров."""
+    print_items(items.items())
+    return False
 
 
-def get_stock_status(quantity, min_threshold):
-    if quantity <= 0:
-        return "Товар закончился, необходимо купить"
-    elif quantity < min_threshold:
-        return "Внимание: остаток товара ниже порога, пора пополнить запас"
-    else:
-        return "Запас товара в норме"
+def find_items_action(items: dict[int, dict]) -> bool:
+    """Вывести товары, найденные по подстроке названия."""
+    query = input_text("Название или его часть: ")
+    print_items(find_items(items, query).items())
+    return False
 
 
-print(f"Пользователь: {username}")
-print(get_login_status(is_logged_in))
-print(f"Дата добавления товара: {date_added}")
-print(get_add_confirmation(item_name, category, quantity))
-print(get_stock_status(quantity, min_threshold))
+def show_category(items: dict[int, dict]) -> bool:
+    """Вывести товары выбранной категории."""
+    category = input_text("Категория: ")
+    print_items(filter_items_by_category(items, category).items())
+    return False
+
+
+def show_sorted_items(items: dict[int, dict]) -> bool:
+    """Вывести товары, упорядоченные по остатку."""
+    print_items(sort_items_by_quantity(items))
+    return False
+
+
+def show_low_stock(items: dict[int, dict]) -> bool:
+    """Вывести товары, остаток которых ниже порога."""
+    low_stock = get_low_stock_items(items)
+    if not low_stock:
+        print("Все запасы в норме")
+        return False
+    print_items(low_stock.items())
+    return False
+
+
+def add_item_action(items: dict[int, dict]) -> bool:
+    """Добавить новый товар."""
+    name = input_text("Название: ")
+    category = input_text("Категория: ")
+    unit = input_text("Единица измерения: ")
+    quantity = input_int("Количество: ")
+    min_threshold = input_int("Порог пополнения: ")
+    date_added = input_date("Дата добавления (ДД.ММ.ГГГГ, Enter — сегодня): ")
+
+    add_item(
+        items, name, category, unit, quantity, min_threshold, date_added
+    )
+    print(get_add_confirmation(name, category, quantity, unit))
+    return True
+
+
+def consume_item_action(items: dict[int, dict]) -> bool:
+    """Списать расход товара."""
+    return change_quantity(items, consume_item, "Расход: ")
+
+
+def restock_item_action(items: dict[int, dict]) -> bool:
+    """Пополнить запас товара."""
+    return change_quantity(items, restock_item, "Пополнение: ")
+
+
+def change_quantity(
+    items: dict[int, dict],
+    operation: Callable[[dict[int, dict], int, int], int],
+    prompt: str,
+) -> bool:
+    """Изменить остаток товара выбранной операцией."""
+    item_id = input_int("Идентификатор товара: ", min_value=1)
+    item = get_item(items, item_id)
+    amount = input_int(prompt, min_value=1)
+
+    quantity = operation(items, item_id, amount)
+    print(f"Остаток товара '{item['name']}': {quantity} {item['unit']}")
+    print(get_stock_status(quantity, item["min_threshold"]))
+    return True
+
+
+def print_items(rows: Iterable[tuple[int, dict]]) -> None:
+    """Вывести товары в виде таблицы."""
+    rows = list(rows)
+    if not rows:
+        print("Товары не найдены")
+        return
+    print(get_items_table(rows))
+
+
+def login(users: list[dict]) -> bool:
+    """Авторизовать пользователя."""
+    for _ in range(LOGIN_ATTEMPTS):
+        username = input_text("Имя пользователя: ")
+        password = input_text("Пароль: ")
+        is_logged_in = authenticate(users, username, password)
+        print(get_login_status(username, is_logged_in))
+        if is_logged_in:
+            return True
+    return False
+
+
+ACTIONS = {
+    "1": ("Показать товары", show_items),
+    "2": ("Найти товар по названию", find_items_action),
+    "3": ("Показать товары категории", show_category),
+    "4": ("Показать товары по остатку", show_sorted_items),
+    "5": ("Добавить товар", add_item_action),
+    "6": ("Списать расход", consume_item_action),
+    "7": ("Пополнить запас", restock_item_action),
+    "8": ("Показать товары ниже порога", show_low_stock),
+}
+
+
+def show_menu() -> None:
+    """Вывести меню приложения."""
+    print("\n=== Система учёта товаров в доме ===")
+    for key, (title, _) in ACTIONS.items():
+        print(f"{key}. {title}")
+    print("0. Выход")
+
+
+def main() -> None:
+    """Точка запуска приложения."""
+    try:
+        users = load_users()
+        items = load_items()
+    except (OSError, ValueError, KeyError) as error:
+        print(f"Не удалось загрузить данные: {error}")
+        return
+
+    if not login(users):
+        return
+
+    while True:
+        show_menu()
+        choice = input("Выберите действие: ").strip()
+        if choice == "0":
+            break
+
+        action = ACTIONS.get(choice)
+        if action is None:
+            print("Такого пункта меню нет")
+            continue
+
+        try:
+            is_changed = action[1](items)
+        except KeyError as error:
+            print(f"Ошибка: {error.args[0]}")
+            continue
+        except ValueError as error:
+            print(f"Ошибка: {error}")
+            continue
+
+        if is_changed:
+            save_items(items)
+
+    print("Работа завершена")
+
+
+if __name__ == "__main__":
+    main()
