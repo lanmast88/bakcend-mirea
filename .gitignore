@@ -1,3 +1,21 @@
-__pycache__/
-.pytest_cache/
+# Окружение
 .venv/
+env/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# Инструменты
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ОС и редакторы
+.DS_Store
+.idea/
+.vscode/

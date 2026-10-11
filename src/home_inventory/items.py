@@ -1,6 +1,5 @@
 """Функции для работы с товарами."""
 
-from collections.abc import Iterable
 from datetime import date
 
 
@@ -91,15 +90,3 @@ def get_add_confirmation(
         f"Товар '{item_name}' не добавлен: "
         "количество должно быть больше нуля"
     )
-
-
-def get_items_table(rows: Iterable[tuple[int, dict]]) -> str:
-    """Собрать таблицу товаров из пар «идентификатор — товар»."""
-    lines = [f"{'ID':<4}{'Название':<20}{'Категория':<16}{'Остаток':<12}Дата"]
-    for item_id, item in rows:
-        quantity = f"{item['quantity']} {item['unit']}"
-        lines.append(
-            f"{item_id:<4}{item['name']:<20}{item['category']:<16}"
-            f"{quantity:<12}{item['date_added']}"
-        )
-    return "\n".join(lines)

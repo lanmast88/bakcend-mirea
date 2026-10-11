@@ -2,7 +2,7 @@
 
 from datetime import date, datetime
 
-INPUT_DATE_FORMAT = "%d.%m.%Y"
+from home_inventory.config import INPUT_DATE_FORMAT
 
 
 def input_text(prompt: str) -> str:

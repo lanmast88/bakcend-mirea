@@ -30,20 +30,82 @@
 
 ## Структура проекта
 
-- `main.py` – точка запуска и меню приложения;
-- `items.py` – работа с товарами;
-- `stock.py` – изменение и контроль остатков;
-- `auth.py` – авторизация пользователя;
-- `storage.py` – сохранение и загрузка данных;
-- `utils.py` – вспомогательные функции ввода;
-- `data/` – JSON-файлы данных;
-- `tests/` – автоматизированные тесты.
+```
+backend-mirea/
+├── main.py                     # точка запуска приложения
+├── pyproject.toml              # метаданные проекта и настройки инструментов
+├── requirements.txt            # зависимости для установки через pip
+├── README.md                   # документация проекта
+├── .flake8                     # настройки линтера
+├── src/
+│   └── home_inventory/         # пакет приложения
+│       ├── __init__.py         # описание пакета и его версия
+│       ├── __main__.py         # запуск через python -m home_inventory
+│       ├── config.py           # пути к данным и константы форматов
+│       ├── auth.py             # авторизация пользователя
+│       ├── items.py            # работа с товарами
+│       ├── stock.py            # изменение и контроль остатков
+│       ├── storage.py          # чтение и запись JSON-файлов
+│       ├── utils.py            # ввод данных с обработкой ошибок
+│       ├── views.py            # форматирование и вывод данных
+│       └── cli.py              # меню и сценарий взаимодействия
+├── data/
+│   ├── items.json              # данные о товарах
+│   └── users.json              # данные о пользователях
+└── tests/
+    ├── conftest.py             # общие фикстуры тестов
+    ├── test_auth.py
+    ├── test_items.py
+    ├── test_stock.py
+    ├── test_storage.py
+    ├── test_utils.py
+    └── test_views.py
+```
+
+Логика приложения распределена по модулям так, чтобы каждый отвечал за
+одну задачу: предметная область (`items.py`, `stock.py`, `auth.py`),
+хранение (`storage.py`), ввод (`utils.py`), вывод (`views.py`) и
+взаимодействие с пользователем (`cli.py`). Код приложения собран в пакет
+`home_inventory` внутри каталога `src`, поэтому модули проекта не
+смешиваются с файлами настроек, данными и тестами.
+
+### Распределение функций по модулям
+
+| Модуль | Функции | Назначение |
+| --- | --- | --- |
+| `cli.py` | `main()`, `menu_loop()`, `run_action()`, `login()` | Меню приложения и вызов функций проекта |
+| `items.py` | `add_item()`, `get_item()`, `find_items()`, `filter_items_by_category()`, `sort_items_by_quantity()`, `get_add_confirmation()` | Добавление, поиск, отбор и сортировка товаров |
+| `stock.py` | `consume_item()`, `restock_item()`, `get_low_stock_items()`, `get_stock_status()` | Расход, пополнение и контроль остатков |
+| `auth.py` | `find_user()`, `authenticate()`, `get_login_status()` | Проверка имени пользователя и пароля |
+| `storage.py` | `load_items()` / `save_items()`, `load_users()` / `save_users()` | Загрузка и сохранение данных в JSON |
+| `utils.py` | `input_text()`, `input_int()`, `input_date()` | Ввод строк, чисел и дат с повтором при ошибке |
+| `views.py` | `format_items_table()`, `print_items()`, `print_menu()` | Таблица товаров и меню приложения |
+| `config.py` | `DATA_DIR`, `ITEMS_FILE`, `USERS_FILE`, `LOGIN_ATTEMPTS` | Пути к данным и константы приложения |
 
 ## Хранение данных
 
 Данные хранятся в JSON-файлах каталога `data/`: товары в `items.json`,
-пользователи в `users.json`. При запуске программа читает файлы, после
-изменения остатков или добавления товара – сохраняет их заново.
+пользователи в `users.json`. Файлы читаются при запуске программы и
+перезаписываются после добавления товара или изменения остатка. Чтение и
+запись выполняются через контекстный менеджер `with`, отсутствие файла и
+некорректный JSON обрабатываются исключениями.
+
+Пример записи в `data/items.json`:
+
+```json
+{
+  "id": 1,
+  "name": "Молоко",
+  "category": "Продукты",
+  "unit": "л",
+  "quantity": 2,
+  "min_threshold": 2,
+  "date_added": "2026-09-08"
+}
+```
+
+Каталог данных можно переопределить переменной окружения
+`HOME_INVENTORY_DATA_DIR`.
 
 ## Требования
 
@@ -51,8 +113,9 @@
 - pytest;
 - flake8.
 
-Зависимости описаны в `pyproject.toml` (группа `dev`) и продублированы
-в `requirements.txt`.
+Основной код использует только стандартную библиотеку Python. Зависимости
+описаны в `pyproject.toml` (группа `dev`) и продублированы в
+`requirements.txt`.
 
 Установка окружения через [uv](https://docs.astral.sh/uv/):
 
@@ -63,6 +126,8 @@ uv sync
 Установка через pip:
 
 ```
+python -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
@@ -71,6 +136,11 @@ pip install -r requirements.txt
 ```
 uv run main.py
 ```
+
+Равнозначные способы запуска: `uv run home-inventory` (точка входа,
+объявленная в `pyproject.toml`) и `uv run python -m home_inventory`.
+
+Тестовый пользователь для входа указан в `data/users.json`.
 
 ## Запуск тестов
 

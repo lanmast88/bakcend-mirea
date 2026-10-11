@@ -2,8 +2,12 @@
 name = "home-inventory"
 version = "0.2.0"
 description = "Консольное приложение для учёта товаров в доме"
+readme = "README.md"
 requires-python = ">=3.10"
 dependencies = []
+
+[project.scripts]
+home-inventory = "home_inventory.cli:run"
 
 [dependency-groups]
 dev = [
@@ -11,5 +15,13 @@ dev = [
     "pytest>=8.0",
 ]
 
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/home_inventory"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["src"]

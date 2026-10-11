@@ -1,6 +1,6 @@
 """Функции для изменения и контроля остатков товаров."""
 
-from items import get_item
+from home_inventory.items import get_item
 
 
 def get_stock_status(quantity: int, min_threshold: int) -> str:
