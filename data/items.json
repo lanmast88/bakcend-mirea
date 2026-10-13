@@ -2,7 +2,7 @@
   {
     "id": 1,
     "name": "Молоко",
-    "category": "Продукты",
+    "category_id": 1,
     "unit": "л",
     "quantity": 2,
     "min_threshold": 2,
@@ -11,7 +11,7 @@
   {
     "id": 2,
     "name": "Стиральный порошок",
-    "category": "Бытовая химия",
+    "category_id": 2,
     "unit": "кг",
     "quantity": 4,
     "min_threshold": 1,
@@ -20,7 +20,7 @@
   {
     "id": 3,
     "name": "Парацетамол",
-    "category": "Лекарства",
+    "category_id": 3,
     "unit": "уп",
     "quantity": 0,
     "min_threshold": 1,

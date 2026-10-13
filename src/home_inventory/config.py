@@ -11,8 +11,10 @@ DATA_DIR = Path(
     os.environ.get("HOME_INVENTORY_DATA_DIR", PROJECT_ROOT / "data")
 )
 
+CATEGORIES_FILE = DATA_DIR / "categories.json"
 ITEMS_FILE = DATA_DIR / "items.json"
 USERS_FILE = DATA_DIR / "users.json"
+OPERATIONS_FILE = DATA_DIR / "operations.json"
 
 #: Формат даты при хранении в JSON (ISO 8601).
 STORAGE_DATE_FORMAT = "%Y-%m-%d"

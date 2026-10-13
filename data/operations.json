@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1,
+    "kind": "restock",
+    "item_id": 2,
+    "user_id": 1,
+    "amount": 2,
+    "date": "2026-09-11"
+  },
+  {
+    "id": 2,
+    "kind": "consume",
+    "item_id": 1,
+    "user_id": 1,
+    "amount": 1,
+    "date": "2026-09-12"
+  }
+]

@@ -1,31 +1,47 @@
-"""Форматирование и вывод данных проекта в консоль."""
+"""Форматирование и вывод объектов предметной области в консоль."""
 
 from collections.abc import Iterable
+
+from home_inventory.models import Item, StockOperation
 
 TABLE_HEADER = (
     f"{'ID':<4}{'Название':<20}{'Категория':<16}{'Остаток':<12}Дата"
 )
 
 
-def format_items_table(rows: Iterable[tuple[int, dict]]) -> str:
-    """Собрать таблицу товаров из пар «идентификатор — товар»."""
+def format_items_table(items: Iterable[Item]) -> str:
+    """Собрать таблицу товаров из коллекции объектов Item."""
     lines = [TABLE_HEADER]
-    for item_id, item in rows:
-        quantity = f"{item['quantity']} {item['unit']}"
+    for item in items:
+        quantity = f"{item.quantity} {item.unit}"
         lines.append(
-            f"{item_id:<4}{item['name']:<20}{item['category']:<16}"
-            f"{quantity:<12}{item['date_added']}"
+            f"{item.id:<4}{item.name:<20}{item.category.name:<16}"
+            f"{quantity:<12}{item.date_added}"
         )
     return "\n".join(lines)
 
 
-def print_items(rows: Iterable[tuple[int, dict]]) -> None:
+def print_items(items: Iterable[Item]) -> None:
     """Вывести товары в виде таблицы или сообщение о пустом результате."""
-    rows = list(rows)
-    if not rows:
+    items = list(items)
+    if not items:
         print("Товары не найдены")
         return
-    print(format_items_table(rows))
+    print(format_items_table(items))
+
+
+def format_operations_log(operations: Iterable[StockOperation]) -> str:
+    """Собрать журнал операций из строковых представлений объектов."""
+    return "\n".join(str(operation) for operation in operations)
+
+
+def print_operations(operations: Iterable[StockOperation]) -> None:
+    """Вывести журнал операций или сообщение о его отсутствии."""
+    operations = list(operations)
+    if not operations:
+        print("Операции не выполнялись")
+        return
+    print(format_operations_log(operations))
 
 
 def print_menu(actions: dict[str, tuple[str, object]]) -> None:

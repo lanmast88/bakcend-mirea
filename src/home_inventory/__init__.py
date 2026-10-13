@@ -1,16 +1,20 @@
 """Пакет приложения учёта товаров в доме.
 
-Логика приложения разделена по модулям:
+Предметная область описана классами пакета
+:mod:`home_inventory.models`, остальные модули отвечают за хранение
+данных, ввод, вывод и взаимодействие с пользователем:
 
 * :mod:`home_inventory.config` — параметры приложения и пути к данным;
-* :mod:`home_inventory.auth` — авторизация пользователя;
-* :mod:`home_inventory.items` — работа с товарами;
-* :mod:`home_inventory.stock` — изменение и контроль остатков;
-* :mod:`home_inventory.storage` — чтение и запись JSON-файлов;
+* :mod:`home_inventory.models.categories` — класс ``Category``;
+* :mod:`home_inventory.models.items` — класс ``Item``;
+* :mod:`home_inventory.models.users` — класс ``User`` и авторизация;
+* :mod:`home_inventory.models.operations` — классы операций с запасом;
+* :mod:`home_inventory.storage` — преобразование объектов в JSON;
 * :mod:`home_inventory.utils` — ввод данных с обработкой ошибок;
+* :mod:`home_inventory.views` — вывод объектов в консоль;
 * :mod:`home_inventory.cli` — меню и точка запуска приложения.
 """
 
 __all__ = ["__version__"]
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
