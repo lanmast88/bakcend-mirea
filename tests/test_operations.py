@@ -7,6 +7,8 @@ import pytest
 from home_inventory.models import Consumption, Restocking, StockOperation
 from home_inventory.models.operations import (
     consume_item,
+    find_item_operations,
+    find_operation_by_id,
     next_operation_id,
     operation_class,
     register_operation,
@@ -155,3 +157,23 @@ def test_operations_share_journal(items, user):
     assert [operation.id for operation in operations] == [1, 2]
     assert items[0].quantity == 4
     assert items[1].quantity == 3
+
+
+def test_find_operation_by_id(item, user):
+    operations: list[StockOperation] = []
+    consume_item(operations, item, user, 1, TEST_DATE)
+    restock_item(operations, item, user, 2, TEST_DATE)
+
+    assert find_operation_by_id(operations, 2) is operations[1]
+    assert find_operation_by_id(operations, 99) is None
+
+
+def test_find_item_operations(items, user):
+    operations: list[StockOperation] = []
+    consume_item(operations, items[0], user, 1, TEST_DATE)
+    restock_item(operations, items[1], user, 2, TEST_DATE)
+
+    found = find_item_operations(operations, items[0])
+
+    assert len(found) == 1
+    assert found[0].item is items[0]

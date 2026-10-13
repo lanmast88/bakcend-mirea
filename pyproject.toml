@@ -4,7 +4,9 @@ version = "0.3.0"
 description = "Консольное приложение для учёта товаров в доме"
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = []
+dependencies = [
+    "django>=5.2,<5.3",
+]
 
 [project.scripts]
 home-inventory = "home_inventory.cli:run"

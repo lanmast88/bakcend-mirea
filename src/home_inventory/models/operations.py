@@ -110,6 +110,17 @@ def next_operation_id(operations: list[StockOperation]) -> int:
     return max((operation.id for operation in operations), default=0) + 1
 
 
+def find_operation_by_id(
+    operations: list[StockOperation],
+    operation_id: int,
+) -> StockOperation | None:
+    """Найти операцию по идентификатору."""
+    for operation in operations:
+        if operation.id == operation_id:
+            return operation
+    return None
+
+
 def register_operation(
     operations: list[StockOperation],
     operation: StockOperation,
@@ -158,3 +169,13 @@ def restock_item(
             operation_date,
         ),
     )
+
+
+def find_item_operations(
+    operations: list[StockOperation],
+    item: Item,
+) -> list[StockOperation]:
+    """Отобрать операции, выполненные с указанным товаром."""
+    return [
+        operation for operation in operations if operation.item is item
+    ]

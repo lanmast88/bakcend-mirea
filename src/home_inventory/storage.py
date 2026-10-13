@@ -161,3 +161,17 @@ def save_operations(
         for operation in operations
     ]
     _write_json(filename, records)
+
+
+def load_data() -> tuple[
+    list[Category],
+    list[Item],
+    list[User],
+    list[StockOperation],
+]:
+    """Загрузить все коллекции объектов, восстановив связи между ними."""
+    categories = load_categories()
+    users = load_users()
+    items = load_items(categories)
+    operations = load_operations(items, users)
+    return categories, items, users, operations

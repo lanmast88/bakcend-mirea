@@ -10,6 +10,10 @@ __pycache__/
 build/
 dist/
 
+# Django
+db.sqlite3
+*.sqlite3
+
 # Инструменты
 .pytest_cache/
 .coverage
