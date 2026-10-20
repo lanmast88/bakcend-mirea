@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Товары ниже порога — Домашние запасы
+{% endblock %}
+
+{% block content %}
+    <h1>Товары ниже порога</h1>
+
+    <p class="text-secondary">
+        Товаров ниже порога: {{ items|length }}
+    </p>
+
+    {% for item in items %}
+        {% include "items/includes/item_card.html" %}
+    {% empty %}
+        <p class="text-success">Все запасы в норме</p>
+    {% endfor %}
+
+    <a href="{% url 'items:list' %}" class="btn btn-outline-secondary">
+        ← ко всем товарам
+    </a>
+{% endblock %}

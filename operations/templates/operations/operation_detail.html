@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if operation %}
+        Операция №{{ operation.id }} — Домашние запасы
+    {% else %}
+        Операция не найдена — Домашние запасы
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% if operation %}
+        <div class="card">
+            <div class="card-body">
+                <h1 class="h4 card-title">Операция №{{ operation.id }}</h1>
+
+                <p class="card-text">
+                    <strong>Тип:</strong>
+                    {% include "operations/includes/operation_badge.html" %}
+                </p>
+
+                <p class="card-text">
+                    <strong>Количество:</strong>
+                    {{ operation.amount }} {{ operation.item.unit }}
+                </p>
+
+                <p class="card-text">
+                    <strong>Товар:</strong>
+                    <a href="{% url 'items:detail' operation.item.id %}">
+                        {{ operation.item.name }}
+                    </a>
+                    <span class="text-secondary">
+                        ({{ operation.item.category.name }})
+                    </span>
+                </p>
+
+                <p class="card-text">
+                    <strong>Пользователь:</strong>
+                    {{ operation.user.username|default:"не указан" }}
+                </p>
+
+                <p class="card-text">
+                    <strong>Дата:</strong>
+                    {{ operation.date|date:"d.m.Y" }}
+                </p>
+            </div>
+        </div>
+    {% else %}
+        <h1 class="text-danger">Операция не найдена</h1>
+
+        <p>Операции с таким идентификатором нет в журнале.</p>
+    {% endif %}
+
+    <a
+        href="{% url 'operations:list' %}"
+        class="btn btn-outline-secondary mt-3"
+    >
+        ← к журналу операций
+    </a>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Главная — Домашние запасы
+{% endblock %}
+
+{% block content %}
+    <h1 class="display-6">Система учёта товаров в доме</h1>
+
+    <p class="lead">
+        Учёт продуктов, бытовой химии, лекарств и других товаров:
+        какие товары есть в наличии, в каком количестве, к какой
+        категории относятся и как изменялись их остатки.
+    </p>
+
+    {% url 'items:list' as items_url %}
+    {% url 'categories:list' as categories_url %}
+    {% url 'items:low_stock' as low_stock_url %}
+    {% url 'operations:list' as operations_url %}
+
+    <div class="row row-cols-2 row-cols-lg-4 g-3 mb-4">
+        {% include "homepage/includes/summary_card.html" with card_title="Товаров" card_value=items|length card_url=items_url %}
+        {% include "homepage/includes/summary_card.html" with card_title="Категорий" card_value=categories|length card_url=categories_url %}
+        {% include "homepage/includes/summary_card.html" with card_title="Ниже порога" card_value=low_stock_items|length card_url=low_stock_url %}
+        {% include "homepage/includes/summary_card.html" with card_title="Операций" card_value=operations|length card_url=operations_url %}
+    </div>
+
+    <p>Основные разделы:</p>
+
+    <a href="{% url 'items:list' %}" class="btn btn-primary me-2">
+        Товары
+    </a>
+    <a href="{% url 'categories:list' %}" class="btn btn-secondary me-2">
+        Категории
+    </a>
+    <a href="{% url 'operations:list' %}" class="btn btn-secondary">
+        Журнал операций
+    </a>
+{% endblock %}

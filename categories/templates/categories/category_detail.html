@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if category %}
+        {{ category.name }} — Домашние запасы
+    {% else %}
+        Категория не найдена — Домашние запасы
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% if category %}
+        <div class="card mb-4">
+            <div class="card-body">
+                <h1 class="h4 card-title">
+                    {{ category.name|default:"Без названия" }}
+                </h1>
+
+                <p class="card-text">
+                    <strong>ID:</strong> {{ category.id }}
+                </p>
+
+                <p class="card-text">
+                    <strong>Товаров в категории:</strong>
+                    {{ items|length }}
+                </p>
+            </div>
+        </div>
+
+        <h2 class="h5">Товары категории</h2>
+
+        {% for item in items %}
+            {% include "items/includes/item_card.html" %}
+        {% empty %}
+            <p class="text-secondary">Товары не найдены</p>
+        {% endfor %}
+    {% else %}
+        <h1 class="text-danger">Категория не найдена</h1>
+
+        <p>Категории с таким идентификатором нет в учёте.</p>
+    {% endif %}
+
+    <a
+        href="{% url 'categories:list' %}"
+        class="btn btn-outline-secondary mt-3"
+    >
+        ← к списку категорий
+    </a>
+{% endblock %}

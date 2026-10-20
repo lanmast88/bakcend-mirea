@@ -1,0 +1,9 @@
+{% if operation.KIND == "consume" %}
+    <span class="badge bg-warning text-dark operation-badge">
+        {{ operation.TITLE }}
+    </span>
+{% else %}
+    <span class="badge bg-success operation-badge">
+        {{ operation.TITLE }}
+    </span>
+{% endif %}

@@ -1,0 +1,12 @@
+<li class="list-group-item operation-row d-flex justify-content-between">
+    <span>
+        <a href="{% url 'operations:detail' operation.id %}">
+            №{{ operation.id }} — {{ operation.item.name }}
+        </a>
+        <span class="text-secondary">
+            {{ operation.amount }} {{ operation.item.unit }},
+            {{ operation.date|date:"d.m.Y" }}
+        </span>
+    </span>
+    {% include "operations/includes/operation_badge.html" %}
+</li>

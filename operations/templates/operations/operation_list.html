@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Журнал операций — Домашние запасы
+{% endblock %}
+
+{% block content %}
+    <h1>Журнал операций</h1>
+
+    <p class="text-secondary">
+        Всего операций: {{ operations|length }}
+    </p>
+
+    <ul class="list-group">
+        {% for operation in operations %}
+            {% include "operations/includes/operation_row.html" %}
+        {% empty %}
+            <li class="list-group-item text-secondary">
+                Операции не выполнялись
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}

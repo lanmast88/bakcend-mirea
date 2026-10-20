@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if item %}
+        {{ item.name }} — Домашние запасы
+    {% else %}
+        Товар не найден — Домашние запасы
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% if item %}
+        <div class="card item-card mb-4">
+            <div class="card-body">
+                <h1 class="h4 card-title">
+                    {{ item.name|default:"Без названия" }}
+                </h1>
+
+                <p class="card-text">
+                    <strong>ID:</strong> {{ item.id }}
+                </p>
+
+                <p class="card-text">
+                    <strong>Категория:</strong>
+                    <a href="{% url 'categories:detail' item.category.id %}">
+                        {{ item.category.name }}
+                    </a>
+                </p>
+
+                <p class="card-text">
+                    <strong>Остаток:</strong>
+                    {{ item.quantity }} {{ item.unit }}
+                    {% include "items/includes/stock_badge.html" %}
+                </p>
+
+                <p class="card-text">
+                    <strong>Порог пополнения:</strong>
+                    {{ item.min_threshold }} {{ item.unit }}
+                </p>
+
+                <p class="card-text">
+                    <strong>Дата добавления:</strong>
+                    {{ item.date_added|date:"d.m.Y" }}
+                </p>
+
+                <p class="card-text">{{ item.stock_status }}</p>
+
+                <a
+                    href="{% url 'items:list' %}"
+                    class="btn btn-outline-secondary"
+                >
+                    ← к списку товаров
+                </a>
+            </div>
+        </div>
+
+        <h2 class="h5">Операции по товару</h2>
+
+        <ul class="list-group">
+            {% for operation in operations %}
+                {% include "operations/includes/operation_row.html" %}
+            {% empty %}
+                <li class="list-group-item text-secondary">
+                    Операций по товару не было
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <h1 class="text-danger">Товар не найден</h1>
+
+        <p>Товара с таким идентификатором нет в учёте.</p>
+
+        <a href="{% url 'items:list' %}" class="btn btn-outline-secondary">
+            ← к списку товаров
+        </a>
+    {% endif %}
+{% endblock %}

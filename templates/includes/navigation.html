@@ -1,0 +1,23 @@
+{% load static %}
+<nav class="navbar navbar-expand bg-body-tertiary border-bottom">
+    <div class="container">
+        <a class="navbar-brand site-brand" href="{% url 'homepage:index' %}">
+            <img
+                src="{% static 'homepage/img/logo.png' %}"
+                alt="Домашние запасы"
+                class="site-logo"
+            >
+            Домашние запасы
+        </a>
+        <div class="nav">
+            <a class="nav-link" href="{% url 'homepage:index' %}">Главная</a>
+            <a class="nav-link" href="{% url 'items:list' %}">Товары</a>
+            <a class="nav-link" href="{% url 'categories:list' %}">
+                Категории
+            </a>
+            <a class="nav-link" href="{% url 'operations:list' %}">
+                Журнал операций
+            </a>
+        </div>
+    </div>
+</nav>

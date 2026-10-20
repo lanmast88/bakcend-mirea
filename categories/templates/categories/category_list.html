@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Категории — Домашние запасы
+{% endblock %}
+
+{% block content %}
+    <h1>Категории</h1>
+
+    <p class="text-secondary">
+        Всего категорий: {{ category_rows|length }}
+    </p>
+
+    <ul class="list-group">
+        {% for row in category_rows %}
+            {% include "categories/includes/category_row.html" %}
+        {% empty %}
+            <li class="list-group-item text-secondary">
+                Категории не найдены
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}

@@ -1,0 +1,6 @@
+<li class="list-group-item category-row d-flex justify-content-between">
+    <a href="{% url 'categories:detail' row.category.id %}">
+        {{ row.category.name|default:"Без названия" }}
+    </a>
+    <span class="badge bg-primary rounded-pill">{{ row.items_count }}</span>
+</li>

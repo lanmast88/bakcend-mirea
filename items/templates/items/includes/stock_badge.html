@@ -1,0 +1,7 @@
+{% if item.is_out_of_stock %}
+    <span class="badge bg-danger stock-badge">закончился</span>
+{% elif item.is_low_stock %}
+    <span class="badge bg-warning text-dark stock-badge">ниже порога</span>
+{% else %}
+    <span class="badge bg-success stock-badge">в норме</span>
+{% endif %}

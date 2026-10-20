@@ -6,16 +6,19 @@
 чтобы вовремя пополнять запасы и не покупать лишнее.
 
 Консольная версия приложения (ПР3) дополнена веб-интерфейсом на Django
-(ПР5). Предметная область описана объектной моделью: классы `Category`,
-`Item`, `User` и операции `Consumption` и `Restocking`. Веб-страницы
-формируются на основе этих же объектов, загруженных из JSON-файлов.
+(ПР5), который в ПР6 переведён на систему шаблонов Django. Предметная
+область описана объектной моделью: классы `Category`, `Item`, `User` и
+операции `Consumption` и `Restocking`. Веб-страницы формируются
+шаблонами на основе этих же объектов, загруженных из JSON-файлов.
 
 ## Используемые технологии
 
 - Python 3.10+;
 - Django 5.2 — веб-фреймворк;
+- Django Template Language (DTL) — формирование HTML-страниц;
 - HTML — разметка веб-страниц;
 - CSS и Bootstrap 5.3 — оформление страниц;
+- JavaScript — небольшое клиентское поведение интерфейса;
 - pytest — автоматизированные тесты;
 - flake8 — проверка качества кода.
 
@@ -201,21 +204,125 @@ Django-приложения, зарегистрированные в `INSTALLED_
 `<int:item_id>/`: Django проверяет шаблоны сверху вниз, поэтому более
 специфичные адреса размещаются раньше общих.
 
-### View-функции и формирование HTML
+### View-функции и контекст шаблона
 
-View-функция принимает объект `HttpRequest` и возвращает
-`HttpResponse`. Общий каркас страницы собирает вспомогательная функция
-`page(title, content)` из приложения `homepage`: кодировка, заголовок
-вкладки, метатег `viewport`, подключение Bootstrap 5.3 через CDN,
-собственные стили CSS и навигация по разделам. Остальные приложения
-импортируют её, поэтому каркас не дублируется, а view-функции
-формируют только содержимое страницы.
+View-функция принимает объект `HttpRequest`, загружает объекты
+предметной области, готовит словарь контекста и вызывает `render()`:
 
-Оформление выполнено классами Bootstrap (`container`, `navbar`, `card`,
-`list-group`, `badge`, `btn`, сетка `row`/`col`) и небольшим набором
-собственных CSS-правил в функции `page()`. Статусы выводятся цветными
-бейджами: остаток в норме — `bg-success`, ниже порога —
-`bg-warning`, товар закончился — `bg-danger`.
+```python
+def items(request):
+    _, items_data, _, _ = load_data()
+
+    context = {
+        "items": sort_items_by_quantity(items_data),
+    }
+
+    return render(request, "items/item_list.html", context)
+```
+
+HTML в Python-коде веб-представлений не формируется: вспомогательная
+функция `page()` из ПР5 удалена, вместо неё используется базовый
+шаблон `templates/base.html`. Если объект не найден, представление
+передаёт в контекст `None` и возвращает ответ со статусом 404:
+
+```python
+return render(
+    request,
+    "items/item_detail.html",
+    context,
+    status=404 if item is None else 200,
+)
+```
+
+### Шаблоны Django
+
+Шаблоны уровня проекта лежат в каталоге `templates/`, подключённом
+параметром `DIRS` списка `TEMPLATES` в `homestock/settings.py`.
+Шаблоны приложений Django находит сам благодаря `APP_DIRS = True`.
+
+| Шаблон | Назначение |
+| --- | --- |
+| `templates/base.html` | каркас всех страниц: `<head>`, Bootstrap, свой CSS, логотип, навигация, подвал, подключение JavaScript |
+| `templates/includes/navigation.html` | навигационное меню сайта |
+| `homepage/templates/homepage/index.html` | главная страница со сводкой |
+| `homepage/templates/homepage/includes/summary_card.html` | карточка сводки главной страницы |
+| `homepage/templates/homepage/not_found.html` | страница ошибки 404 |
+| `items/templates/items/item_list.html` | список товаров |
+| `items/templates/items/low_stock.html` | товары ниже порога |
+| `items/templates/items/item_detail.html` | карточка товара и операции по нему |
+| `items/templates/items/includes/item_card.html` | карточка одного товара |
+| `items/templates/items/includes/stock_badge.html` | бейдж статуса запаса |
+| `categories/templates/categories/category_list.html` | список категорий |
+| `categories/templates/categories/category_detail.html` | категория и её товары |
+| `categories/templates/categories/includes/category_row.html` | строка списка категорий |
+| `operations/templates/operations/operation_list.html` | журнал операций |
+| `operations/templates/operations/operation_detail.html` | карточка операции |
+| `operations/templates/operations/includes/operation_row.html` | строка журнала операций |
+| `operations/templates/operations/includes/operation_badge.html` | бейдж типа операции |
+
+Используются возможности Django Template Language:
+
+- наследование: каждая страница начинается с `{% extends "base.html" %}`;
+- блоки `{% block title %}` и `{% block content %}`, переопределяемые
+  дочерними шаблонами;
+- включаемые шаблоны `{% include %}` для навигации, карточек товаров,
+  строк журнала и бейджей статуса;
+- циклы `{% for %}` с обработкой пустой коллекции через `{% empty %}`;
+- условия `{% if %}` — статус запаса, тип операции, отсутствие объекта;
+- вывод значений и вызов методов объектов: `{{ item.quantity }}`,
+  `{{ item.stock_status }}`.
+
+Бейдж статуса запаса собирается условием в шаблоне: остаток в норме —
+`bg-success`, ниже порога — `bg-warning`, товар закончился —
+`bg-danger`. Один и тот же включаемый шаблон используется и в списке
+товаров, и на карточке товара.
+
+### Именованные URL и пространства имён
+
+В каждом приложении объявлено пространство имён (`app_name`), ссылки в
+шаблонах формируются тегом `{% url %}`, а не жёстко заданными адресами:
+
+| Имя маршрута | Адрес | Пример использования |
+| --- | --- | --- |
+| `homepage:index` | `/` | `{% url 'homepage:index' %}` |
+| `items:list` | `/items/` | `{% url 'items:list' %}` |
+| `items:low_stock` | `/items/low-stock/` | `{% url 'items:low_stock' %}` |
+| `items:detail` | `/items/<int:item_id>/` | `{% url 'items:detail' item.id %}` |
+| `categories:list` | `/categories/` | `{% url 'categories:list' %}` |
+| `categories:detail` | `/categories/<int:category_id>/` | `{% url 'categories:detail' category.id %}` |
+| `operations:list` | `/operations/` | `{% url 'operations:list' %}` |
+| `operations:detail` | `/operations/<int:operation_id>/` | `{% url 'operations:detail' operation.id %}` |
+
+### Фильтры шаблонов
+
+Фильтры используются только для представления данных:
+
+- `{{ items|length }}` — количество товаров, категорий или операций;
+- `{{ item.name|default:"Без названия" }}` — значение по умолчанию;
+- `{{ item.date_added|date:"d.m.Y" }}` и `{{ operation.date|date:"d.m.Y" }}`
+  — вывод дат в привычном формате.
+
+### Статические файлы
+
+Статические файлы проекта лежат в приложении `homepage`:
+
+```text
+homepage/static/homepage/
+├── css/style.css   # собственные стили проекта
+├── js/main.js      # вывод текущего года в подвале страницы
+└── img/logo.png    # логотип в шапке сайта
+```
+
+В начале `templates/base.html` подключена библиотека тегов
+`{% load static %}`, после чего файлы подключаются через
+`{% static 'homepage/css/style.css' %}`,
+`{% static 'homepage/js/main.js' %}` и
+`{% static 'homepage/img/logo.png' %}`. Тег `static` строит адрес по
+настройке `STATIC_URL`, поэтому путь к файлу не зашит в разметку.
+Собственный CSS оформляет шапку с логотипом, карточки товаров и
+сводки, бейджи статуса, строки журнала и подвал страницы; Bootstrap
+отвечает за базовую вёрстку. Проверить поиск файла можно командой
+`uv run python manage.py findstatic homepage/img/logo.png`.
 
 ### Обработка ошибки 404
 
@@ -227,18 +334,18 @@ View-функция принимает объект `HttpRequest` и возвр�
 нужно при `DEBUG = False` и заполненном `ALLOWED_HOSTS`.
 
 Если маршрут найден, но объект с указанным идентификатором отсутствует,
-view-функция сама возвращает `HttpResponse(..., status=404)` с
-сообщением «Товар не найден», «Категория не найдена» или «Операция не
-найдена».
+представление передаёт в шаблон `None`, шаблон показывает ветку
+`{% else %}` с сообщением «Товар не найден», «Категория не найдена» или
+«Операция не найдена», а `render()` возвращает ответ со статусом 404.
 
 ### Данные ПР3 в веб-интерфейсе
 
 Веб-слой не дублирует предметную логику: view-функции получают запрос,
 загружают объекты средствами ПР3, при необходимости находят конкретный
 объект по идентификатору, вызывают методы и функции предметной модели и
-формируют HTML-ответ.
+передают результат шаблону через контекст.
 
-| Функция ПР3 | Назначение | Судьба в ПР5 |
+| Функция ПР3 | Назначение | Судьба в вебе |
 | --- | --- | --- |
 | `load_data()` | загрузка всех коллекций объектов из JSON | добавлена в ПР5, используется всеми страницами |
 | `load_categories()`, `load_items()`, `load_users()`, `load_operations()` | JSON → объекты | используются |
@@ -260,7 +367,7 @@ view-функция сама возвращает `HttpResponse(..., status=404)
 
 ## Возможности
 
-### Доступно в веб-интерфейсе (ПР5)
+### Доступно в веб-интерфейсе (ПР5–ПР6)
 
 - просмотр сводки по запасам на главной странице;
 - просмотр списка товаров с остатками и статусами;
@@ -309,19 +416,51 @@ backend-mirea/
 │   ├── asgi.py                 # точка входа для ASGI-сервера
 │   └── wsgi.py                 # точка входа для WSGI-сервера
 │
+├── templates/                  # шаблоны уровня проекта
+│   ├── base.html               # базовый шаблон всех страниц
+│   └── includes/
+│       └── navigation.html     # навигационное меню сайта
+│
 ├── homepage/                   # приложение главной страницы
-│   ├── views.py                # page() — каркас страниц, index(), page_not_found()
-│   ├── urls.py                 # маршрут главной страницы
+│   ├── templates/homepage/
+│   │   ├── index.html          # главная страница
+│   │   ├── not_found.html      # страница ошибки 404
+│   │   └── includes/
+│   │       └── summary_card.html
+│   ├── static/homepage/
+│   │   ├── css/style.css       # собственные стили проекта
+│   │   ├── js/main.js          # текущий год в подвале страницы
+│   │   └── img/logo.png        # логотип в шапке сайта
+│   ├── views.py                # index(), page_not_found()
+│   ├── urls.py                 # маршрут главной страницы (app_name)
 │   ├── admin.py, apps.py, models.py, tests.py, migrations/
 ├── categories/                 # приложение категорий
+│   ├── templates/categories/
+│   │   ├── category_list.html
+│   │   ├── category_detail.html
+│   │   └── includes/
+│   │       └── category_row.html
 │   ├── views.py                # categories(), category_detail()
 │   ├── urls.py
 │   ├── admin.py, apps.py, models.py, tests.py, migrations/
 ├── items/                      # приложение товаров
+│   ├── templates/items/
+│   │   ├── item_list.html
+│   │   ├── low_stock.html
+│   │   ├── item_detail.html
+│   │   └── includes/
+│   │       ├── item_card.html
+│   │       └── stock_badge.html
 │   ├── views.py                # items(), low_stock(), item_detail()
 │   ├── urls.py
 │   ├── admin.py, apps.py, models.py, tests.py, migrations/
 ├── operations/                 # приложение журнала операций
+│   ├── templates/operations/
+│   │   ├── operation_list.html
+│   │   ├── operation_detail.html
+│   │   └── includes/
+│   │       ├── operation_row.html
+│   │       └── operation_badge.html
 │   ├── views.py                # operations(), operation_detail()
 │   ├── urls.py
 │   ├── admin.py, apps.py, models.py, tests.py, migrations/
@@ -382,17 +521,25 @@ from home_inventory.models import Category, Item, StockOperation, User
 | `cli.py` | `main()`, `menu_loop()`, `run_action()`, `login()`, `save_data()`, `AppContext` | Меню консольного приложения |
 | `config.py` | `DATA_DIR`, `CATEGORIES_FILE`, `ITEMS_FILE`, `USERS_FILE`, `OPERATIONS_FILE`, `LOGIN_ATTEMPTS` | Пути к данным и константы приложения |
 
-Веб-слой (ПР5):
+Веб-слой (ПР5–ПР6):
 
 | Модуль | Функции | Назначение |
 | --- | --- | --- |
-| `homestock/settings.py` | — | Настройки проекта, список приложений, локализация |
+| `homestock/settings.py` | — | Настройки проекта, список приложений, каталог шаблонов (`DIRS`), локализация |
 | `homestock/urls.py` | `urlpatterns`, `handler404` | Корневая маршрутизация и обработчик ошибки 404 |
-| `homepage/views.py` | `page()`, `summary_card()`, `index()`, `page_not_found()` | Каркас страниц, главная страница, страница 404 |
-| `items/views.py` | `items()`, `low_stock()`, `item_detail()`, `item_row()`, `items_list()`, `stock_badge()` | Страницы товаров и оформление их списка |
+| `homepage/views.py` | `index()`, `page_not_found()` | Главная страница и страница 404 |
+| `items/views.py` | `items()`, `low_stock()`, `item_detail()` | Страницы товаров |
 | `categories/views.py` | `categories()`, `category_detail()` | Страницы категорий |
-| `operations/views.py` | `operations()`, `operation_detail()`, `operation_badge()` | Страницы журнала операций |
-| `*/urls.py` | `urlpatterns` | Маршруты приложений с именами (`name=`) |
+| `operations/views.py` | `operations()`, `operation_detail()` | Страницы журнала операций |
+| `*/urls.py` | `app_name`, `urlpatterns` | Маршруты приложений с именами (`name=`) и пространством имён |
+| `templates/`, `*/templates/` | шаблоны DTL | Формирование HTML-страниц |
+| `homepage/static/homepage/` | `style.css`, `main.js`, `logo.png` | Собственные статические файлы проекта |
+
+Представления не формируют HTML: они готовят контекст и вызывают
+`render()`. Разделение обязанностей — URLconf определяет адрес,
+представление получает данные, контекст передаёт их шаблону, шаблон
+формирует HTML, CSS отвечает за оформление, JavaScript — за клиентское
+поведение.
 
 ## Хранение данных
 
@@ -549,7 +696,7 @@ uv run flake8
 ## Git
 
 Исходный код проекта хранится в Git-репозитории. Коммиты, относящиеся к
-практической работе, начинаются с её метки, например `PR5:`. Проверка
+практической работе, начинаются с её метки, например `PR6:`. Проверка
 состояния репозитория:
 
 ```
@@ -569,11 +716,27 @@ git status
 - навигация между страницами;
 - оформление HTML, CSS и Bootstrap 5.3.
 
+Реализовано в ПР6:
+
+- базовый шаблон `templates/base.html` и наследование шаблонов;
+- блоки `{% block title %}` и `{% block content %}`;
+- включаемые шаблоны `{% include %}`: навигация, карточка товара,
+  бейдж статуса запаса, строка и бейдж журнала операций;
+- передача данных во все страницы через контекст и `render()`;
+- циклы `{% for %}` с обработкой пустой коллекции `{% empty %}` и
+  условия `{% if %}`;
+- пространства имён приложений (`app_name`) и ссылки `{% url %}`;
+- фильтры шаблонов `length`, `default` и `date`;
+- собственные статические файлы: CSS, JavaScript и логотип;
+- отказ от формирования HTML в Python: функция `page()` удалена.
+
+Данные по-прежнему хранятся в JSON-файлах: Django ORM и веб-формы на
+этом этапе не используются — они относятся к следующим работам.
+
 Планируется:
 
 - перенос сущностей `Category`, `Item`, `User` и операций в Django ORM;
 - подключение базы данных вместо JSON-файлов;
-- переход на шаблоны (`templates/`) вместо функции `page()`;
 - формы добавления товаров и изменения остатков;
 - аутентификация пользователей средствами Django;
 - разработка API;

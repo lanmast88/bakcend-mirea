@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Утилита управления Django-проектом homestock."""
+"""Утилита управления Django-проектом."""
 
 import os
 import sys
